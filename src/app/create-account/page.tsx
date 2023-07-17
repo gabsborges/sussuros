@@ -1,14 +1,16 @@
 "use client"
 
 import { useRouter } from "next/navigation";
-import { keyframes, styled } from "styled-components"
+import { keyframes, styled } from "styled-components";
 
-const fadeIn = keyframes`
+const toUp = keyframes`
   from {
     opacity: 0;
+    transform: translateY(200px);
   }
   to {
     opacity: 1;
+    transform: translateY(0px);
   }
 `;
 
@@ -21,26 +23,19 @@ const Main = styled.div`
   justify-content: center;
 `;
 
-const Image = styled.img`
-  padding-bottom: 30px;
-
-  animation: ${fadeIn} 2s ease-in;
-
-`;
-
 const Title = styled.h1`
+  display: flex;
+  justify-content: flex-start;
   font-size: 32px;
   font-weight: bold;
   color: var(--primary-color-full);
   padding-bottom: 30px;
-
-  animation: ${fadeIn} 3s ease-in;
 `;
 
 const Div = styled.div`
   width: 370px;
 
-  animation: ${fadeIn} 3s ease-in;
+  animation: ${toUp} .5s ease-in;
 `;
 
 
@@ -57,13 +52,10 @@ const Label = styled.label`
   display: flex;
   flex-direction: column;
   color: var(--primary-color);
+  margin-bottom: 30px;
 
   &:focus-within ${TextLabel} {
     color: var(--primary-color-full); 
-  }
-
-  &:first-child {
-    margin-bottom: 60px;
   }
 `;
 
@@ -81,24 +73,10 @@ const Input = styled.input`
   }
 `;
 
-const Forgot = styled.a`
-  display: flex;
-  justify-content: flex-end;
-  text-decoration: underline;
-  font-size: 12px;
-  color: var(--primary-color);
-  transition: all .3s ease-in-out;
-
-  &:hover {
-    color: var(--primary-color-full);
-  }
-`;
-
 const DivButton = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 30px;
 `;
 
 const FirstButton = styled.button`
@@ -133,7 +111,8 @@ const SeccondButton = styled.button`
   }
 `;
 
-export default function Home() {
+export default function CreateAccount() {
+
   const { push } = useRouter();
 
   const handleEntrarClick = () => {
@@ -144,33 +123,41 @@ export default function Home() {
     ("/outra-pagina");
   };
 
-  const handleCreateAccount = () => {
-    push("/create-account");
+  const handleVoltar = () => {
+    push("/");
   };
 
   return (
-    <Main>
-      <Image src='./logo.png' alt="" />
-
-      <Title>Sussuros do Baralho</Title>
-
+<Main>
       <Div>
+
+      <Title>Crie sua conta</Title>
+
+        <Label>
+          <TextLabel>Usuario</TextLabel>
+          <Input type="text" placeholder="Digite seu usuario" required/>
+        </Label>
 
         <Label>
           <TextLabel>E-mail</TextLabel>
-          <Input type="text" placeholder="Digite seu e-mail"/>
+          <Input type="text" placeholder="Digite seu e-mail" required/>
         </Label>
 
         <Label>
         <TextLabel>Senha</TextLabel>
-          <Input type="password" placeholder="Digite sua senha"/>
+          <Input type="password" placeholder="Digite sua senha" required/>
         </Label>
-        <Forgot href="#">Esqueceu sua senha?</Forgot>
+
+        <Label>
+        <TextLabel>Confirme sua senha</TextLabel>
+          <Input type="password" placeholder="Repita sua senha" required/>
+        </Label>
 
         <DivButton>
-          <FirstButton >Entrar</FirstButton>
-          <SeccondButton onClick={handleCreateAccount}>Criar conta</SeccondButton>
+          <FirstButton >Criar</FirstButton>
+          <SeccondButton onClick={handleVoltar}>Voltar</SeccondButton>
         </DivButton>
+
       </Div>
     </Main>
   )
