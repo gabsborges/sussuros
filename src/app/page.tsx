@@ -1,7 +1,12 @@
 "use client"
 
-import { useRouter } from "next/navigation";
-import { keyframes, styled } from "styled-components"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { keyframes } from 'styled-components';
+import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { auth } from './services/firebaseConfig';
+import styled from 'styled-components';
+import LoadingLogin from './loading-login/page';
 
 const fadeIn = keyframes`
   from {
@@ -9,6 +14,18 @@ const fadeIn = keyframes`
   }
   to {
     opacity: 1;
+  }
+`;
+
+const levitate = keyframes`
+  0% {
+    transform: translateY(15px)
+  }
+  50% {
+    transform: translateY(0px)
+  }
+  100% {
+    transform: translateY(15px)
   }
 `;
 
@@ -23,9 +40,7 @@ const Main = styled.div`
 
 const Image = styled.img`
   padding-bottom: 30px;
-
-  animation: ${fadeIn} 2s ease-in;
-
+  animation: ${levitate} 3s ease-in-out infinite;
 `;
 
 const Title = styled.h1`
@@ -33,23 +48,20 @@ const Title = styled.h1`
   font-weight: bold;
   color: var(--primary-color-full);
   padding-bottom: 30px;
-
   animation: ${fadeIn} 3s ease-in;
 `;
 
 const Div = styled.div`
   width: 370px;
-
   animation: ${fadeIn} 3s ease-in;
 `;
-
 
 const TextLabel = styled.p`
   position: absolute;
   top: -10px;
   left: 20px;
   padding: 0 5px;
-  background-color: #0F172A;
+  background-color: #0f172a;
 `;
 
 const Label = styled.label`
@@ -59,14 +71,13 @@ const Label = styled.label`
   color: var(--primary-color);
 
   &:focus-within ${TextLabel} {
-    color: var(--primary-color-full); 
+    color: var(--primary-color-full);
   }
 
   &:first-child {
     margin-bottom: 60px;
   }
 `;
-
 
 const Input = styled.input`
   padding: 15px 13px 13px 13px;
@@ -77,7 +88,7 @@ const Input = styled.input`
   border-radius: 10px;
 
   &::placeholder {
-      color: var(--secondary-color);
+    color: var(--secondary-color);
   }
 `;
 
@@ -87,7 +98,7 @@ const Forgot = styled.a`
   text-decoration: underline;
   font-size: 12px;
   color: var(--primary-color);
-  transition: all .3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   &:hover {
     color: var(--primary-color-full);
@@ -109,7 +120,7 @@ const FirstButton = styled.button`
   color: var(--primary-color);
   font-size: 16px;
   cursor: pointer;
-  transition: all .3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   &:hover {
     color: var(--primary-color-full);
@@ -117,7 +128,7 @@ const FirstButton = styled.button`
   }
 `;
 
-const SeccondButton = styled.button`
+const SecondButton = styled.button`
   background-color: transparent;
   padding: 9px 33px 7px 33px;
   border-radius: 10px;
@@ -125,7 +136,7 @@ const SeccondButton = styled.button`
   color: var(--secondary-color);
   font-size: 16px;
   cursor: pointer;
-  transition: all .3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   &:hover {
     color: var(--primary-color-full);
@@ -133,45 +144,96 @@ const SeccondButton = styled.button`
   }
 `;
 
+const ErrorMessage = styled.p`
+  font-size: 12px;
+  color: #e11d48;
+`;
+
 export default function Home() {
-  const { push } = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailTextError, setEmailTextError] = useState('');
+  const [passwordTextError, setPasswordTextError] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [signInWithEmailAndPassword, user, loading, error,] = useSignInWithEmailAndPassword(auth)
+  const router = useRouter();
 
-  const handleEntrarClick = () => {
-    // Realize as ações necessárias antes de navegar para a próxima página
-    // ...
+  const handleLogin = () => {
+    setEmailError(false);
+    setPasswordError(false);
+    setEmailTextError('');
+    setPasswordTextError('');
 
-    // Navegue para a próxima página
-    ("/outra-pagina");
+    if (email.length === 0) {
+      setEmailError(true);
+      setEmailTextError('Este campo precisa ser preenchido');
+    }
+
+    if (password.length === 0) {
+      setPasswordError(true);
+      setPasswordTextError('Este campo precisa ser preenchido');
+    }
+
+    if (email.length !== 0 && password.length !== 0) {
+      signInWithEmailAndPassword(email, password)
+        .then(() => {
+          setEmail('');
+          setPassword('');
+          router.push('/dashboard');
+        })
+        .catch((error) => {
+          
+        });
+    }
   };
 
+  if(loading) {
+    return <LoadingLogin/>
+  }
+
   const handleCreateAccount = () => {
-    push("/create-account");
+    router.push('/create-account');
   };
 
   return (
     <Main>
-      <Image src='./logo.png' alt="" />
-
+      <Image src="./logo.png" alt="" />
       <Title>Sussuros do Baralho</Title>
-
       <Div>
-
         <Label>
           <TextLabel>E-mail</TextLabel>
-          <Input type="text" placeholder="Digite seu e-mail"/>
+          <Input
+            type="text"
+            placeholder="Digite seu e-mail"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          {emailError && <ErrorMessage>Preencha o campo "E-mail"</ErrorMessage>}
+          {emailTextError && <ErrorMessage>{emailTextError}</ErrorMessage>}
         </Label>
-
         <Label>
-        <TextLabel>Senha</TextLabel>
-          <Input type="password" placeholder="Digite sua senha"/>
+          <TextLabel>Senha</TextLabel>
+          <Input
+            type="password"
+            placeholder="Digite sua senha"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
+            required
+          />
+          {passwordError && <ErrorMessage>Preencha o campo "Senha"</ErrorMessage>}
+          {passwordTextError && <ErrorMessage>{passwordTextError}</ErrorMessage>}
         </Label>
         <Forgot href="#">Esqueceu sua senha?</Forgot>
-
         <DivButton>
-          <FirstButton >Entrar</FirstButton>
-          <SeccondButton onClick={handleCreateAccount}>Criar conta</SeccondButton>
+          <FirstButton onClick={handleLogin}>Entrar</FirstButton>
+          <SecondButton onClick={handleCreateAccount}>Criar conta</SecondButton>
         </DivButton>
       </Div>
     </Main>
-  )
+  );
 }
